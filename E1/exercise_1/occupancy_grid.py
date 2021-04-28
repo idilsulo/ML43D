@@ -14,5 +14,14 @@ def occupancy_grid(sdf_function, resolution):
 
     # ###############
     # TODO: Implement
-    return -1
+    
+    grid = np.zeros((resolution, resolution, resolution))
+
+    
+    for i in range(resolution):
+        for j in range(resolution):
+            for k in range(resolution):
+                grid[i][j][k] = 0 if sdf_function(i,j,k) > 0 else 1
+
+    return grid
     # ###############

@@ -17,7 +17,9 @@ def signed_distance_sphere(x, y, z, r, x_0, y_0, z_0):
 
     # ###############
     # TODO: Implement
-    return -1
+
+    dist_to_surface = np.sqrt((x-x_0)**2 + (y-y_0)**2 + (z-z_0)**2)-r
+    return dist_to_surface
     # ###############
 
 
@@ -37,7 +39,10 @@ def signed_distance_torus(x, y, z, R, r, x_0, y_0, z_0):
 
     # ###############
     # TODO: Implement
-    return -1
+    
+    a = np.sqrt((x-x_0)**2 + (z-z_0)**2) - R
+    dist_to_surface = np.sqrt(a**2 + (y-y_0)**2) - r
+    return dist_to_surface
     # ###############
 
 
@@ -59,5 +64,10 @@ def signed_distance_atom(x, y, z):
 
     # ###############
     # TODO: Implement
-    return -1
+
+    dist_to_atom = signed_distance_sphere(x, y, z, proton_radius, proton_center[0], proton_center[1], proton_center[2])
+    dist_to_electron = signed_distance_sphere(x, y, z, electron_radius, electron_center[0], electron_center[1], electron_center[2])
+    dist_to_orbit = signed_distance_torus(x, y, z, orbit_radius, orbit_thickness, proton_center[0], proton_center[1], proton_center[2])
+
+    return np.min([dist_to_orbit, dist_to_electron, dist_to_atom], axis=0)
     # ###############

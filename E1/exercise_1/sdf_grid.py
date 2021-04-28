@@ -14,5 +14,25 @@ def sdf_grid(sdf_function, resolution):
 
     # ###############
     # TODO: Implement
-    return -1
+
+    grid = np.zeros((resolution, resolution, resolution))
+
+    
+    for i in range(resolution):
+        for j in range(resolution):
+            for k in range(resolution):
+                grid[i][j][k] = sdf_function(i,j,k)
+
+    """
+
+    for i in range(resolution):
+        for j in range(resolution):
+            # One less loop
+            # sdf_function can take multiple points at once
+            x = np.array([i] * resolution)
+            y = np.array([j] * resolution)
+            z = np.array(list(range(resolution)))
+            grid[i][j] = sdf_function(x, y, z)
+    """
+    return grid
     # ###############

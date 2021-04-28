@@ -16,12 +16,13 @@ def sdf_grid(sdf_function, resolution):
     # TODO: Implement
 
     grid = np.zeros((resolution, resolution, resolution))
-
+    step = 1.0 / (resolution - 1)
+    coord = np.arange(-0.5, 0.5+step, step)
     
     for i in range(resolution):
         for j in range(resolution):
             for k in range(resolution):
-                grid[i][j][k] = sdf_function(i,j,k)
+                grid[i][j][k] = sdf_function(coord[i],coord[j],coord[k])
 
     """
 

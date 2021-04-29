@@ -19,21 +19,23 @@ def sdf_grid(sdf_function, resolution):
     step = 1.0 / (resolution - 1)
     coord = np.arange(-0.5, 0.5+step, step)
     
+    # Uses scalar input for sdf function
+    # for i in range(resolution):
+    #     for j in range(resolution):
+    #         for k in range(resolution):
+    #             grid[i][j][k] = sdf_function(coord[i],coord[j],coord[k])
+
+
+    # Use 1D numpy arrays instead
     for i in range(resolution):
         for j in range(resolution):
-            for k in range(resolution):
-                grid[i][j][k] = sdf_function(coord[i],coord[j],coord[k])
+            x = np.array([coord[i]] * resolution)
+            y = np.array([coord[j]] * resolution)
+            z = coord.copy()
+            
+            sdf = sdf_function(x, y, z)
+            grid[i][j] = sdf.copy()
 
-    """
 
-    for i in range(resolution):
-        for j in range(resolution):
-            # One less loop
-            # sdf_function can take multiple points at once
-            x = np.array([i] * resolution)
-            y = np.array([j] * resolution)
-            z = np.array(list(range(resolution)))
-            grid[i][j] = sdf_function(x, y, z)
-    """
     return grid
     # ###############

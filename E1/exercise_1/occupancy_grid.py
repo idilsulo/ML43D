@@ -19,10 +19,23 @@ def occupancy_grid(sdf_function, resolution):
     step = 1.0 / (resolution - 1)
     coord = np.arange(-0.5, 0.5+step, step)
     
+    # Note: Scalars cannot be fed to MLP
+    # for i in range(resolution):
+    #     for j in range(resolution):
+    #         for k in range(resolution):
+    #             grid[i][j][k] = 0 if sdf_function(np.array([coord[i]]),np.array([coord[j]]),np.array([coord[k]])) > 0 else 1
+
     for i in range(resolution):
         for j in range(resolution):
-            for k in range(resolution):
-                grid[i][j][k] = 0 if sdf_function(coord[i],coord[j],coord[k]) > 0 else 1
+            x = np.array([coord[i]] * resolution)
+            y = np.array([coord[j]] * resolution)
+            z = coord.copy()
+            
+            sdf = sdf_function(x, y, z)
+            sdf_binary = sdf.copy()
+            sdf_binary[sdf > 0] = 0
+            sdf_binary[sdf <= 0] = 1
+            grid[i][j] = sdf_binary
 
     return grid
     # ###############

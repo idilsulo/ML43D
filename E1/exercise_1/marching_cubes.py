@@ -150,7 +150,17 @@ def compute_cube_index(cube: np.array, isolevel=0.) -> int:
 
     # ###############
     # TODO: Implement
-    return -1
+
+    index = cube.copy()
+    index[cube < isolevel] = 1
+    index[cube >= isolevel] = 0
+
+    n_corners = len(cube)
+    bits = list(range(0,n_corners,1))
+    bits = np.array([2**b for b in bits])
+
+    cube_index = (index * bits).sum()
+    return int(cube_index)
     # ###############
 
 
@@ -171,6 +181,82 @@ def marching_cubes(sdf: np.array) -> tuple:
     # TODO: Implement
     # ###############
 
+    resolution = sdf.shape[0]
+    step = 1.0 / (resolution - 1)
+    
+
+    coord = np.arange(-0.5, 0.5+step, step)
+
+    def corner_points(edge_idx):
+        edge_map = {
+            0 : [np.array([1,0,0]), np.array([1,0,1])],
+            1 : [np.array([1,0,1]), np.array([1,1,1])],
+            2 : [np.array([1,1,1]), np.array([1,1,0])],
+            3 : [np.array([1,1,0]), np.array([1,0,0])],
+            4 : [np.array([0,0,0]), np.array([0,0,1])],
+            5 : [np.array([0,0,1]), np.array([0,1,1])],
+            6 : [np.array([0,1,1]), np.array([0,1,0])],
+            7 : [np.array([0,1,0]), np.array([0,0,0])],
+            8 : [np.array([1,0,0]), np.array([0,0,0])],
+            9 : [np.array([1,0,1]), np.array([0,0,1])],
+            10: [np.array([1,1,1]), np.array([0,1,1])],
+            11: [np.array([1,1,0]), np.array([0,1,0])]
+        }
+        return edge_map[edge_idx]
+
+    new_idx = 0
+    for i in range(resolution-1):
+        for j in range(resolution-1):
+            for k in range(resolution-1):
+                
+                cube = sdf[i:i+2, j:j+2, k:k+2]
+
+                # Transform cube indices to the desired order 
+                order_idx = [4,5,7,6,0,1,3,2]
+                index = compute_cube_index(cube.flatten()[order_idx])
+
+                # Get the vertices that form a face on the shape
+                vertices = triangle_table[index]
+                vertices = [v for v in vertices if v != -1]
+                             
+                # Each 3 vertice corresponds to a triangle
+                triangle = []
+
+                # Use a dıctionary to keep track of duplicate vertices
+                local_vertices = {}
+
+                for v in vertices:
+
+                    # Get the indices wrt the points corresponding to the two corners of an edge
+                    p_1_idx, p_2_idx = corner_points(v)
+
+                    # Get the sdf values of the corner points
+                    sdf_1 = sdf[i + p_1_idx[0], j + p_1_idx[1], k + p_1_idx[2]]
+                    sdf_2 = sdf[i + p_2_idx[0], j + p_2_idx[1], k + p_2_idx[2]]
+
+                    # Get the corner point coordinates
+                    p_1 = np.array([coord[p_1_idx[0]+i], coord[p_1_idx[1]+j], coord[p_1_idx[2]+k]])
+                    p_2 = np.array([coord[p_2_idx[0]+i], coord[p_2_idx[1]+j], coord[p_2_idx[2]+k]])
+
+                    # Get the vertex location, i.e. one of the 3 vertices of the triangle
+                    v_loc = vertex_interpolation(p_1, p_2, sdf_1, sdf_2)
+
+                    # Assign a new index if the vertex is not encountered before
+                    if v not in local_vertices.keys():
+                        local_vertices[v] = (new_idx, v_loc)
+                        triangle.append(new_idx)
+                        new_idx += 1
+                    else:
+                        triangle.append(local_vertices[v][0])
+
+                    if len(triangle) == 3:
+                        # Add the triangle to the global list if all corner points are processed
+                        global_triangles.append(triangle)
+                        triangle = []
+
+                # Add the vertices calculated from the current cube to the global list
+                global_vertices += [l[1] for l in local_vertices.values()]
+
     return global_vertices, global_triangles
 
 
@@ -185,4 +271,16 @@ def vertex_interpolation(p_1, p_2, v_1, v_2, isovalue=0.):
     :return: A single point
     """
 
-    return p_1 + (p_2 - p_1) / 2.
+    # Return vertex w/o interpolation 
+    # Used for previous calculation, do not remove 
+    # return p_1 + (p_2 - p_1) / 2.
+
+    # Total sdf change
+    sdf_diff = np.abs(v_1 - v_2)
+
+    # Get the vertex point lying on the surface of the shape based on SDF value
+    # Move from the point inside of the surface to the outside
+    if v_2 < isovalue:
+        return p_2 + (p_1 - p_2)*np.abs(v_2) / sdf_diff
+    else:
+        return p_1 + (p_2 - p_1)*np.abs(v_1) / sdf_diff

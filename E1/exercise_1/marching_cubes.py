@@ -257,6 +257,9 @@ def marching_cubes(sdf: np.array) -> tuple:
                 # Add the vertices calculated from the current cube to the global list
                 global_vertices += [l[1] for l in local_vertices.values()]
 
+    global_triangles = np.array(global_triangles)
+    global_vertices = np.array([global_vertices])
+
     return global_vertices, global_triangles
 
 

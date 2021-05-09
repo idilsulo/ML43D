@@ -211,6 +211,7 @@ GitHub.sublime-settings
 
 # Ignored point cloud files
 *.ply
+*.obj
 
 # Ignore poetry lock
 poetry.lock

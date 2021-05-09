@@ -39,3 +39,12 @@ def export_pointcloud_to_obj(path, pointcloud):
     # ###############
     # TODO: Implement
     # ###############
+
+
+    f = open(path, "w")
+    for x, y, z in pointcloud:
+        f.write("v {} {} {}\n".format(x, y, z))
+
+    f.close()
+
+    print("Exported point cloud object to {}.".format(path))

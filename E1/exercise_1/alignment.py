@@ -19,6 +19,35 @@ def procrustes_align(pc_x, pc_y):
     # 3. estimate rotation
     # 4. estimate translation
     # R and t should now contain the rotation (shape 3x3) and translation (shape 3,)
+
+    X = np.transpose(pc_x)
+    Y = np.transpose(pc_y)
+
+    # Get the mean of all samples for each point cloud
+    X_mean = np.mean(X, axis=1).reshape(3,1)
+    Y_mean = np.mean(Y, axis=1).reshape(3,1)
+    
+    # Remove translation by mean-centering
+    X = X - X_mean
+    Y = Y - Y_mean
+
+    # Compute SVD 
+    X_Y_t = np.matmul(X, Y.transpose())
+    U, S, V_t = np.linalg.svd(X_Y_t)
+
+    epsilon = 1e-8 # Check equality based on the provided error rate, epsilon
+    if np.abs(np.linalg.det(U) * np.linalg.det(V_t.transpose()) - 1) <= epsilon:
+        S = np.eye(3)
+    else:
+        S = np.diagflat([1,1,-1])
+
+    # Estimate the rotation matrix based on SVD results
+    R = np.matmul(np.matmul(U, S), V_t).transpose()
+
+    # Estimate the translation
+    # Recover the translation from the version where translation is removed: R @ X_mean
+    t = (Y_mean - np.matmul(R, X_mean)).reshape(3)
+
     # TODO: Your implementation ends here ###############
 
     t_broadcast = np.broadcast_to(t[:, np.newaxis], (3, pc_x.shape[0]))

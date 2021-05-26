@@ -58,18 +58,23 @@ class ThreeDeeCNN(nn.Module):
             self.partial_predictors.append(
                 # TODO: partial predictor linear layers as per the paper
                 # 8 vectors of dimension 512
-                nn.Sequential(nn.Linear(512, n_classes),
-                nn.Dropout(0.5),
-                nn.Softmax(dim=0))
+                nn.Sequential(
+                    nn.Linear(512, n_classes),
+                # nn.Dropout(0.5),
+                # nn.Softmax(dim=0)
+                )
             )
 
         # TODO: add predictor for full 2x2x2 feature volume
         self.full_predictor = nn.Sequential(
             nn.Linear(512*8, 2048),
-            nn.Linear(2048, 2048),
-            nn.Linear(2048, n_classes),
+            nn.ReLU(),
             nn.Dropout(0.5),
-            nn.Softmax(dim=0)
+            nn.Linear(2048, 2048),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(2048, n_classes),
+            # nn.Softmax(dim=0)
             )
 
     def forward(self, x):

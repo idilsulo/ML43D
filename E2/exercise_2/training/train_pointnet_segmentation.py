@@ -9,10 +9,10 @@ from exercise_2.model.pointnet import PointNetSegmentation
 def train(model, trainloader, valloader, device, config):
 
     # TODO Declare loss and move to specified device
-    loss_criterion = None
+    loss_criterion = torch.nn.NLLLoss()
 
     # TODO Declare optimizer
-    optimizer = None
+    optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
 
     # set model to train, important if your network has e.g. dropout or batchnorm layers
     model.train()
@@ -26,6 +26,28 @@ def train(model, trainloader, valloader, device, config):
 
         for i, batch in enumerate(trainloader):
             # TODO Add missing pieces, as in the exercise parts before
+            # move batch to device
+            ShapeNetParts.move_batch_to_device(batch, device)
+
+            # TODO: zero out previously accumulated gradients
+            optimizer.zero_grad()
+
+            # TODO: forward pass
+            prediction = model(batch["points"])
+            # print(prediction.shape)
+            # print(batch["segmentation_labels"].shape)
+            
+            prediction = prediction.permute(0, 2, 1)
+            loss_total = loss_criterion(prediction, batch["segmentation_labels"])
+
+            # TODO: compute gradients on loss_total (backward pass)
+            loss_total.backward()
+
+            # TODO: update network params
+            optimizer.step()
+            # loss logging  
+            train_loss_running += loss_total.item()
+            iteration = epoch * len(trainloader) + i
 
             if iteration % config['print_every_n'] == (config['print_every_n'] - 1):
                 print(f'[{epoch:03d}/{i:05d}] train_loss: {train_loss_running / config["print_every_n"]:.3f}')
@@ -34,13 +56,24 @@ def train(model, trainloader, valloader, device, config):
             # validation evaluation and logging
             if iteration % config['validate_every_n'] == (config['validate_every_n'] - 1):
                 # TODO Add missing pieces, as in the exercise parts before
+                model.eval()
 
                 total, correct = 0, 0
+                loss_val = 0.
                 ious = []
 
                 # forward pass and evaluation for entire validation set
                 for batch_val in valloader:
                     # TODO Add missing pieces, as in the exercise parts before
+                    ShapeNetParts.move_batch_to_device(batch_val, device)
+
+                    with torch.no_grad():
+                        # TODO: Get prediction scores
+                        prediction = model(batch_val["points"])
+
+                    # TODO: Get predicted labels from scores
+                    _prediction = prediction.permute(0, 2, 1)
+                    predicted_label = torch.argmax(_prediction, dim=1)
 
                     total += predicted_label.numel()
                     correct += (predicted_label == batch_val['segmentation_labels']).sum().item()
@@ -69,6 +102,8 @@ def train(model, trainloader, valloader, device, config):
                     best_accuracy = accuracy
 
                 # TODO Add missing pieces, as in the exercise parts before
+                # set model back to train
+                model.train()
 
 
 def main(config):

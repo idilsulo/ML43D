@@ -223,3 +223,6 @@ data/ShapeNetPointClouds/
 # Ignore poetry lock
 poetry.lock
 
+# Ignore model files 
+E2/exercise_2/runs/
+

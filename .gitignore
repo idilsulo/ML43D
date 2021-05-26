@@ -212,6 +212,14 @@ GitHub.sublime-settings
 # Ignored point cloud files
 *.ply
 *.obj
+*.seg
+*.binvox
+
+# Ignore datasets
+data/shapenetcore_partanno_segmentation_benchmark_v0/
+data/ShapeNetVox32/
+data/ShapeNetPointClouds/
 
 # Ignore poetry lock
 poetry.lock
+

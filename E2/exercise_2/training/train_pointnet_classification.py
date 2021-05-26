@@ -32,10 +32,8 @@ def train(model, trainloader, valloader, device, config):
 
             # TODO: forward pass
             prediction = model(batch["points"])
-            # print(prediction.shape)
 
             # TODO: compute total loss = sum of loss for whole prediction + losses for partial predictions
-            # print(prediction.shape)
             
             loss_total = loss_criterion(prediction, batch["label"])
 
@@ -66,7 +64,6 @@ def train(model, trainloader, valloader, device, config):
 
                     with torch.no_grad():
                         # TODO: Get prediction scores
-                        # prediction = None
                         prediction = model(batch_val["points"])
 
                     # TODO: Get predicted labels from scores

@@ -86,12 +86,8 @@ def train(model, trainloader, valloader, device, config):
 
             # TODO: forward pass
             prediction = model(batch["voxel"])
-            # print(prediction.shape)
 
             # TODO: compute total loss = sum of loss for whole prediction + losses for partial predictions
-            # labels = batch["label"].unsqueeze(dim=1)
-            # labels = torch.cat(9 * [labels], dim=1)
-            # _prediction = prediction.permute(0, 2, 1)
             
             loss_total = torch.zeros([1], dtype=batch['voxel'].dtype, requires_grad=True).to(device)
             for output_idx in range(prediction.shape[1]):
@@ -130,26 +126,16 @@ def train(model, trainloader, valloader, device, config):
                         prediction = model(batch_val["voxel"])
 
                     # TODO: Get predicted labels from scores
-                    # predicted_label = None
-                    # print("prediction_shape", prediction.shape, prediction)
                     predicted_label = torch.argmax(prediction, dim=2)
-
-                    # print("prediction_label", predicted_label.shape, predicted_label)
 
                     labels = batch_val["label"].unsqueeze(dim=1)
                     labels = torch.cat(9 * [labels], dim=1)
-                    # print("labels", labels.shape, labels)
                     
                     res = labels == predicted_label
-                    # print("res", res.shape, res)
                     res = torch.sum(res)
-                    # print("res", res.shape, res)
 
                     correct += res.item()
-                    # print("correct", correct)
-
                     total += predicted_label.shape[0] * predicted_label.shape[1]
-                    # print("total", total)
 
                     # TODO: keep track of total / correct / loss_total_val
                     _prediction = prediction.permute(0, 2, 1)

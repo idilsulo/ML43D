@@ -25,22 +25,17 @@ class InferenceHandler3DCNN:
         input_tensor = torch.from_numpy(voxels).float().unsqueeze(0).unsqueeze(0)
 
         # TODO: Predict class
-        # prediction = None
         prediction = self.model(input_tensor)
-        # print(prediction.shape)
         prediction = prediction.squeeze(0)
-        prediction = torch.argmax(prediction, dim=0)
-        prediction = torch.mode(prediction).values
-        # prediction = prediction[0]
-        # print(prediction)
-        # class_id = None
+
+        # Approach 1: Take majority vote
+        # prediction = torch.argmax(prediction, dim=0)
+        # prediction = torch.mode(prediction).values
+
+        # Approach 2: Get the most confident prediction
+        prediction = torch.argmax(torch.max(prediction, dim=0).values).item()
         
         class_id = ShapeNetVox.classes[prediction]
-        # print(class_id)
-        # class_name = None
-        
-        # print(ShapeNetVox.class_name_mapping)
         class_name = ShapeNetVox.class_name_mapping[class_id]
-        # print(class_name)
 
         return class_name

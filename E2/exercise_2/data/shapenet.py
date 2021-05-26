@@ -101,12 +101,9 @@ class ShapeNetPoints(torch.utils.data.Dataset):
         # Hint: Since shape names are in the format "<shape_class>/<shape_identifier>", the first part gives the class
 
         item_class = item.split('/')[0]
-        # print(item_class)
         points = self.get_point_cloud(item)
         points = np.array(points, dtype=np.float32)
-        # print(points)
 
-        # print(ShapeNetPoints.classes)
         return {
             "name": item,  # The item ID
             "points": points,
@@ -137,7 +134,4 @@ class ShapeNetPoints(torch.utils.data.Dataset):
 
         pc_filename = "exercise_2/data/ShapeNetPointClouds/{}/{}.obj".format(category_id, shape_id)
         pc = trimesh.load(pc_filename)
-        # print(pc)
-        # pc = np.array(pc)
-        # pc = pc[np.newaxis, :]
         return pc.vertices.T

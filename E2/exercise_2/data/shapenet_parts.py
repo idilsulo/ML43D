@@ -61,7 +61,7 @@ class ShapeNetParts(torch.utils.data.Dataset):
 
 
         # Downsample point cloud to 1024 points
-        idx = np.random.choice(pc.shape[0], size=1024, replace=False)
+        idx = np.random.choice(pc.shape[0], size=1024)
         pc = pc[idx]
 
         # Read the labels, and get the corresponding ones for the downsampled point cloud

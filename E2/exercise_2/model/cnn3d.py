@@ -95,16 +95,11 @@ class ThreeDeeCNN(nn.Module):
                     partial_predictor = self.partial_predictors[d * self.feature_cube_side ** 2 + h * self.feature_cube_side + w]
 
                     # TODO: get prediction for object for backbone feature at d, h, w
-                    # print(backbone_features.shape)
-                    # _backbone_features = backbone_features.reshape(batch_size, 8, 512)
                     partial_object_prediction = partial_predictor(backbone_features[:,:,d,h,w])
                     predictions_partial.append(partial_object_prediction)
 
         # TODO: Get prediction for whole object
         _backbone_features = backbone_features.reshape(batch_size, 4096)
         full_prediction = self.full_predictor(_backbone_features)
-        # print(full_prediction.shape)
-
-        # print(predictions_partial[0].shape)
 
         return torch.stack([full_prediction] + predictions_partial, dim=1)

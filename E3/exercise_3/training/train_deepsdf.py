@@ -11,16 +11,20 @@ def train(model, latent_vectors, train_dataloader, device, config):
 
     # Declare loss and move to device
     # TODO: declare loss as `loss_criterion`
-    # loss_criterion =
+    loss_criterion = torch.nn.L1Loss()
     loss_criterion.to(device)
 
     # declare optimizer
     optimizer = torch.optim.Adam([
         {
             # TODO: optimizer params and learning rate for model (lr provided in config)
+            'params' : model.parameters(),
+            'lr' : config['learning_rate_model'] 
         },
         {
             # TODO: optimizer params and learning rate for latent code (lr provided in config)
+            'params' : latent_vectors.parameters(),
+            'lr' : config['learning_rate_code']
         }
     ])
 
@@ -43,6 +47,7 @@ def train(model, latent_vectors, train_dataloader, device, config):
             ShapeImplicit.move_batch_to_device(batch, device)
 
             # TODO: Zero out previously accumulated gradients
+            optimizer.zero_grad()
 
             # calculate number of samples per batch (= number of shapes in batch * number of points per shape)
             num_points_per_batch = batch['points'].shape[0] * batch['points'].shape[1]
@@ -56,10 +61,15 @@ def train(model, latent_vectors, train_dataloader, device, config):
             points = batch['points'].reshape((num_points_per_batch, 3))
             sdf = batch['sdf'].reshape((num_points_per_batch, 1))
 
+            # print('sdf', sdf.shape)
+            # print(points.shape)
+            # print(batch_latent_vectors.shape)
+            inp_x = torch.cat((batch_latent_vectors, points), dim=1) 
+            
             # TODO: perform forward pass
-            # predicted_sdf =
+            predicted_sdf = model(inp_x)
             # TODO: truncate predicted sdf between -0.1 and 0.1
-            # predicted_sdf =
+            predicted_sdf = torch.clamp(predicted_sdf, -0.1, 0.1)
 
             # compute loss
             loss = loss_criterion(predicted_sdf, sdf)
@@ -70,8 +80,10 @@ def train(model, latent_vectors, train_dataloader, device, config):
                 loss = loss + code_regularization
 
             # TODO: backward
+            loss.backward()
 
             # TODO: update network parameters
+            optimizer.step()
 
             # loss logging
             train_loss_running += loss.item()
@@ -96,7 +108,7 @@ def train(model, latent_vectors, train_dataloader, device, config):
                 latent_vectors_for_vis = latent_vectors(torch.LongTensor(range(min(5, latent_vectors.num_embeddings))).to(device))
                 for latent_idx in range(latent_vectors_for_vis.shape[0]):
                     # create mesh and save to disk
-                    evaluate_model_on_grid(model, latent_vectors_for_vis[latent_idx, :], device, 64, f'exercise_3/runs/{config["experiment_name"]}/meshes/{iteration:05d}_{latent_idx:03d}.obj')
+                    v, m = evaluate_model_on_grid(model, latent_vectors_for_vis[latent_idx, :], device, 64, f'exercise_3/runs/{config["experiment_name"]}/meshes/{iteration:05d}_{latent_idx:03d}.obj')
                 # set model back to train
                 model.train()
 

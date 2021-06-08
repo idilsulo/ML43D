@@ -63,7 +63,7 @@ class ShapeImplicit(torch.utils.data.Dataset):
         :return: length of the dataset
         """
         # TODO: Implement
-        return
+        return len(self.items)
 
     @staticmethod
     def move_batch_to_device(batch, device):
@@ -89,7 +89,14 @@ class ShapeImplicit(torch.utils.data.Dataset):
         # the returned tensor shoud have approximately self.num_sample_points/2 randomly selected samples from pos_tensor
         # and approximately self.num_sample_points/2 randomly selected samples from neg_tensor
 
-        return
+        pos_idx = np.random.choice(pos_tensor.shape[0], self.num_sample_points // 2)
+        neg_idx = np.random.choice(neg_tensor.shape[0], self.num_sample_points // 2)
+
+        pos_tensor = torch.FloatTensor(pos_tensor[pos_idx])
+        neg_tensor = torch.FloatTensor(neg_tensor[neg_idx])
+
+        out = torch.vstack((pos_tensor, neg_tensor))
+        return out
 
     @staticmethod
     def get_mesh(shape_id):

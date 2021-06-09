@@ -52,20 +52,21 @@ class InferenceHandlerDeepSDF:
         model = self.get_model()
 
         # TODO: define loss criterion for optimization
-        # loss_l1 =
+        loss_l1 = torch.nn.L1Loss()
 
         # initialize the latent vector that will be optimized
         latent = torch.ones(1, self.latent_code_length).normal_(mean=0, std=0.01).to(self.device)
         latent.requires_grad = True
 
         # TODO: create optimizer on latent, use a learning rate of 0.005
-        # optimizer =
+        optimizer = torch.optim.Adam([latent], lr=0.005)
 
         for iter_idx in range(num_optimization_iters):
             # TODO: zero out gradients
+            optimizer.zero_grad()
 
             # TODO: sample a random batch from the observations, batch size = self.num_samples
-            # batch_indices =
+            batch_indices = random.sample(range(0, len(points)), self.num_samples)
 
             batch_points = points[batch_indices, :]
             batch_sdf = sdf[batch_indices, :]
@@ -78,10 +79,11 @@ class InferenceHandlerDeepSDF:
             latent_codes = latent.expand(self.num_samples, -1)
 
             # TODO: forward pass with latent_codes and batch_points
-            # predicted_sdf =
+            inp_x = torch.cat((latent_codes, batch_points), dim=1) 
+            predicted_sdf = model(inp_x)
 
             # TODO: truncate predicted sdf between -0.1, 0.1
-            # predicted_sdf =
+            predicted_sdf = predicted_sdf.clamp(-0.1, 0.1)
 
             # compute loss wrt to observed sdf
             loss = loss_l1(predicted_sdf, batch_sdf)
@@ -90,6 +92,8 @@ class InferenceHandlerDeepSDF:
             loss += 1e-4 * torch.mean(latent.pow(2))
 
             # TODO: backwards and step
+            loss.backward()
+            optimizer.step()
 
             # loss logging
             if iter_idx % 50 == 0:
@@ -124,6 +128,12 @@ class InferenceHandlerDeepSDF:
         for i in range(0, num_interpolation_steps + 1):
             # TODO: interpolate the latent codes: latent_codes[0, :] and latent_codes[1, :]
             # interpolated_code =
+            
+            w = i / num_interpolation_steps
+            interpolated_code = (1-w) * latent_codes[0, :] + w * latent_codes[1, :]
+            
+
+
             # reconstruct the shape at the interpolated latent code
             evaluate_model_on_grid(model, interpolated_code, self.device, 64, self.experiment / "interpolation" / f"{i:05d}_000.obj")
 
